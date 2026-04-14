@@ -12,7 +12,24 @@ if (-not (Test-Path $obsPath)) {
 # Ensure VS Code is running (so window capture has a target)
 $vscode = Get-Process "Code" -ErrorAction SilentlyContinue
 if (-not $vscode) {
-    Write-Host "Warning: VS Code is not running. Start it and open Pixel Agents panel, then re-run." -ForegroundColor Yellow
+    $vscodeCandidates = @(
+        "$env:LOCALAPPDATA\Programs\Microsoft VS Code\Code.exe",
+        "C:\Program Files\Microsoft VS Code\Code.exe",
+        "C:\Program Files (x86)\Microsoft VS Code\Code.exe"
+    )
+    $vscodePath = $vscodeCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+    if ($vscodePath) {
+        Write-Host "Starting VS Code..." -ForegroundColor Yellow
+        Start-Process $vscodePath
+        # Wait for VS Code main window to appear
+        for ($i = 0; $i -lt 30; $i++) {
+            Start-Sleep -Seconds 1
+            $p = Get-Process "Code" -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowTitle }
+            if ($p) { break }
+        }
+    } else {
+        Write-Host "Warning: VS Code not found in standard locations. Start it manually." -ForegroundColor Red
+    }
 }
 
 # Start OBS if not already running
