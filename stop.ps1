@@ -1,13 +1,21 @@
-# Pixel Agents Viewer - Stop script
-# Captures current Projector geometry, then shuts OBS down.
+# Pixel Agents Viewer - Stop script (browser mode)
+# Kills the local HTTP server. Browser tab + VS Code are left alone.
 
 $ErrorActionPreference = "SilentlyContinue"
 
-$obs = Get-Process "obs64" -ErrorAction SilentlyContinue
-if ($obs) {
-    python "$PSScriptRoot\save_geometry.py"
-    Stop-Process -Name "obs64" -Force
-    Write-Host "OBS stopped." -ForegroundColor Green
+$httpPidFile = Join-Path $PSScriptRoot ".http_pid"
+if (Test-Path $httpPidFile) {
+    $pidValue = Get-Content $httpPidFile
+    if ($pidValue) {
+        $proc = Get-Process -Id $pidValue -ErrorAction SilentlyContinue
+        if ($proc) {
+            Stop-Process -Id $pidValue -Force
+            Write-Host "HTTP server stopped (PID $pidValue)." -ForegroundColor Green
+        } else {
+            Write-Host "HTTP server was not running." -ForegroundColor Gray
+        }
+    }
+    Remove-Item $httpPidFile -Force
 } else {
-    Write-Host "OBS was not running." -ForegroundColor Gray
+    Write-Host "HTTP server was not running." -ForegroundColor Gray
 }

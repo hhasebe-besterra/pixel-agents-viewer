@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>Pixel Agents Browser Viewer</title>
+<style>
+  html, body { margin: 0; padding: 0; background: #111; height: 100%; overflow: hidden; color: #eee;
+    font: 14px/1.5 'Segoe UI', system-ui, sans-serif; }
+  #stage { display: flex; align-items: center; justify-content: center; height: 100vh; }
+  video { width: 100vw; height: 100vh; object-fit: contain; background: #000; display: none; }
+  video.active { display: block; }
+  #panel {
+    text-align: center; padding: 40px; max-width: 560px;
+    background: #1b1b1b; border: 1px solid #333; border-radius: 10px;
+  }
+  #panel h1 { margin: 0 0 12px; font-size: 20px; color: #fff; }
+  #panel p { margin: 0 0 24px; color: #bbb; }
+  button {
+    padding: 14px 28px; font-size: 16px; font-weight: 600; cursor: pointer;
+    background: #0a84ff; color: #fff; border: none; border-radius: 6px;
+  }
+  button:hover { background: #0066d4; }
+  #status { position: fixed; top: 12px; right: 12px;
+    color: #fff; font: 12px/1.4 monospace; background: rgba(0,0,0,0.6);
+    padding: 6px 10px; border-radius: 4px; display: none; }
+  #status.visible { display: block; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="panel">
+    <h1>Pixel Agents Browser Viewer</h1>
+    <p>
+      「画面共有を開始」をクリック → 表示されるダイアログで
+      <strong>VS Code ウィンドウ</strong> を選択してください。
+    </p>
+    <button id="start">画面共有を開始</button>
+  </div>
+  <video id="v" autoplay playsinline muted></video>
+</div>
+<div id="status"></div>
+<script>
+const panel = document.getElementById('panel');
+const video = document.getElementById('v');
+const status = document.getElementById('status');
+const btn = document.getElementById('start');
+
+const showStatus = (msg) => { status.textContent = msg; status.classList.add('visible'); };
+
+btn.addEventListener('click', async () => {
+  try {
+    const stream = await navigator.mediaDevices.getDisplayMedia({
+      video: { displaySurface: 'window', frameRate: 30 },
+      audio: false,
+      preferCurrentTab: false,
+      selfBrowserSurface: 'exclude',
+      systemAudio: 'exclude',
+      surfaceSwitching: 'include',
+      monitorTypeSurfaces: 'exclude'
+    });
+    video.srcObject = stream;
+    video.classList.add('active');
+    panel.style.display = 'none';
+    stream.getVideoTracks()[0].addEventListener('ended', () => {
+      video.classList.remove('active');
+      panel.style.display = '';
+      showStatus('共有が停止されました。再度開始してください。');
+    });
+  } catch (e) {
+    showStatus('エラー: ' + e.message);
+  }
+});
+
+// Auto-click on load if the browser lets us (some flags allow this after launch from PowerShell).
+// Safe to ignore failure — user can press the button manually.
+window.addEventListener('load', () => {
+  if (location.hash === '#auto') btn.click();
+});
+</script>
+</body>
+</html>
