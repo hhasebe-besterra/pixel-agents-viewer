@@ -4,6 +4,14 @@ VS Code 拡張 [Pixel Agents](https://marketplace.visualstudio.com/items?itemNam
 
 Claude Code セッションを「ピクセルオフィスで働くキャラクター」として可視化できる Pixel Agents 拡張は、標準では VS Code 内部パネルにしか表示されません。本ツールは OBS Studio の Windowed Projector 機能を使い、その表示領域を独立ウィンドウとしてクローンします。
 
+## スクリーンショット
+
+| Projector | VS Code パネル |
+|---|---|
+| ![projector](docs/screenshot-projector.png) | ![panel](docs/screenshot-panel.png) |
+
+> 画像を用意するには `docs/` フォルダを作成し、任意のスクリーンショットツール（Windows: `Win + Shift + S`）で Projector ウィンドウと VS Code パネルをそれぞれ PNG で保存してください。
+
 ## 仕組み
 
 ```
@@ -70,6 +78,10 @@ OBS プロセスを終了し、Projector ウィンドウも閉じます。
 ### クロップ範囲の調整
 
 OBS ウィンドウ（タスクトレイから復帰）で `PixelAgents` シーンの Window Capture ソースを右クリック → Transform → Edit Transform でクロップを調整できます。調整結果は OBS の scene collection に保存され、次回以降も有効です。
+
+### ウィンドウ位置・サイズの記憶
+
+`.\stop.ps1` 実行時に Projector ウィンドウの現在位置・サイズを `geometry.json` に保存します。次回 `.\launch.ps1` ではその値で復元されます。`geometry.json` は `.gitignore` 対象（個人設定扱い）。削除すればデフォルト（100, 100, 960×720）に戻ります。
 
 ### 常時最前面表示
 

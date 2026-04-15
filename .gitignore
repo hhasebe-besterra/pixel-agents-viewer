@@ -3,3 +3,4 @@ __pycache__/
 *.log
 .vscode/
 .DS_Store
+geometry.json

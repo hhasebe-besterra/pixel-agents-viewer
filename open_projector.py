@@ -2,9 +2,24 @@
 
 import base64
 import io
+import json
+import os
 import struct
 import sys
 import time
+
+GEOMETRY_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "geometry.json")
+
+
+def load_geometry() -> tuple[int, int, int, int]:
+    """Return (x, y, w, h). Falls back to defaults if geometry.json is absent or malformed."""
+    default = (100, 100, 960, 720)
+    try:
+        with open(GEOMETRY_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return (int(data["x"]), int(data["y"]), int(data["w"]), int(data["h"]))
+    except (FileNotFoundError, KeyError, ValueError, OSError):
+        return default
 
 if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
@@ -105,7 +120,9 @@ def main() -> int:
         print("Open OBS and set the window manually in the source properties.")
 
     print("Opening windowed projector...")
-    geometry = build_qt_geometry(x=100, y=100, w=960, h=720)
+    gx, gy, gw, gh = load_geometry()
+    print(f"[geometry] x={gx} y={gy} w={gw} h={gh}")
+    geometry = build_qt_geometry(x=gx, y=gy, w=gw, h=gh)
     try:
         client.open_source_projector(SCENE_NAME, -1, geometry)
     except Exception as exc:
